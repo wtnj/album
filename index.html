@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Álbum Copa 2026 — Controle de Figurinhas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0a1f1a;
+    --panel:#11302a;
+    --panel-2:#0d2722;
+    --line:#1f4a40;
+    --green:#00d977;
+    --green-dk:#00a85b;
+    --gold:#f5c518;
+    --red:#ff5a52;
+    --text:#eafff5;
+    --muted:#7fae9f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Archivo',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #15463b 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #123a31 0%, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  header{
+    padding:28px 22px 18px;
+    border-bottom:2px solid var(--line);
+    position:sticky;top:0;z-index:30;
+    background:rgba(10,31,26,.92);
+    backdrop-filter:blur(10px);
+  }
+  .brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .ball{
+    width:34px;height:34px;border-radius:50%;
+    background:conic-gradient(from 45deg,#fff 0 25%,#0a1f1a 0 50%,#fff 0 75%,#0a1f1a 0);
+    box-shadow:0 0 0 3px var(--green),0 6px 20px rgba(0,217,119,.35);
+    flex-shrink:0;
+  }
+  h1{
+    font-family:'Archivo Black',sans-serif;
+    font-size:clamp(20px,5vw,30px);
+    letter-spacing:-.5px;line-height:1;
+    text-transform:uppercase;
+  }
+  h1 span{color:var(--green)}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  .stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:10px;margin-top:18px;
+  }
+  .stat{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:10px 12px;text-align:center;
+  }
+  .stat .n{font-family:'Archivo Black';font-size:clamp(16px,4.5vw,24px);line-height:1}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px}
+  .stat.have .n{color:var(--green)}
+  .stat.miss .n{color:var(--red)}
+  .stat.dup .n{color:var(--gold)}
+
+  .bar-wrap{margin-top:14px}
+  .bar{height:10px;background:var(--panel-2);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--green-dk),var(--green));width:0;transition:width .5s ease}
+  .bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+
+  .controls{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+    padding:16px 22px;position:sticky;top:0;
+  }
+  .seg{display:flex;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{
+    background:none;border:none;color:var(--muted);
+    padding:8px 14px;font-family:inherit;font-size:12px;font-weight:600;
+    cursor:pointer;text-transform:uppercase;letter-spacing:.4px;
+  }
+  .seg button.active{background:var(--green);color:#062018}
+  input.search{
+    flex:1;min-width:150px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:10px;
+    color:var(--text);padding:9px 14px;font-family:inherit;font-size:14px;
+  }
+  input.search::placeholder{color:var(--muted)}
+  input.search:focus{outline:none;border-color:var(--green)}
+
+  .teams{padding:0 16px;display:flex;flex-direction:column;gap:14px}
+  .team{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;overflow:hidden;
+  }
+  .team-head{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 16px;cursor:pointer;user-select:none;
+  }
+  .flag{font-size:26px;line-height:1;flex-shrink:0}
+  .team-name{font-weight:700;font-size:15px;flex:1}
+  .team-grp{font-size:11px;color:var(--muted);background:var(--panel-2);padding:3px 8px;border-radius:6px}
+  .team-prog{font-size:12px;font-weight:700;color:var(--green);min-width:48px;text-align:right}
+  .chev{transition:transform .25s;color:var(--muted)}
+  .team.open .chev{transform:rotate(180deg)}
+
+  .grid{
+    display:none;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));
+    gap:8px;padding:4px 14px 16px;
+  }
+  .team.open .grid{display:grid}
+  .cell{
+    aspect-ratio:1;border-radius:10px;border:1px solid var(--line);
+    background:var(--panel-2);color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    cursor:pointer;font-weight:700;font-size:13px;position:relative;
+    transition:transform .1s, background .15s;
+  }
+  .cell:active{transform:scale(.92)}
+  .cell small{font-size:8px;font-weight:600;opacity:.7;margin-top:1px}
+  .cell.have{background:var(--green);color:#062018;border-color:var(--green)}
+  .cell.dup{background:var(--gold);color:#3a2c00;border-color:var(--gold)}
+  .cell.dup .badge{
+    position:absolute;top:-6px;right:-6px;
+    background:var(--red);color:#fff;border-radius:99px;
+    font-size:10px;min-width:18px;height:18px;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--panel);padding:0 4px;
+  }
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 22px 4px;font-size:11px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:12px;height:12px;border-radius:4px;display:inline-block}
+  .dot.h{background:var(--green)}.dot.d{background:var(--gold)}.dot.m{background:var(--panel-2);border:1px solid var(--line)}
+
+  .hint{padding:8px 22px 0;font-size:11px;color:var(--muted)}
+  .toolbar{display:flex;gap:8px;padding:14px 22px 0;flex-wrap:wrap}
+  .btn{
+    background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+    padding:8px 14px;border-radius:9px;font-family:inherit;font-size:12px;font-weight:600;
+    cursor:pointer;
+  }
+  .btn.danger{border-color:#5a2420;color:var(--red)}
+  .btn:hover{border-color:var(--green)}
+  .trades{
+    margin:18px 16px 0;background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:16px;
+  }
+  .trades h3{font-family:'Archivo Black';font-size:14px;text-transform:uppercase;margin-bottom:10px}
+  .trades h3 b{color:var(--gold)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:600}
+  .chip.gold{border-color:var(--gold);color:var(--gold)}
+  .chip.red{border-color:var(--red);color:var(--red)}
+  .empty{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="ball"></div>
+    <div>
+      <h1>Álbum <span>Copa 2026</span></h1>
+      <div class="sub">Controle de coleção · 980 cromos · 48 seleções</div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n" id="s-total">0</div><div class="l">Total</div></div>
+    <div class="stat have"><div class="n" id="s-have">0</div><div class="l">Tenho</div></div>
+    <div class="stat miss"><div class="n" id="s-miss">0</div><div class="l">Faltam</div></div>
+    <div class="stat dup"><div class="n" id="s-dup">0</div><div class="l">Repetidas</div></div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar"><i id="bar"></i></div>
+    <div class="bar-label"><span id="pct">0%</span><span id="frac">0 / 0</span></div>
+  </div>
+</header>
+
+<div class="legend">
+  <span><i class="dot h"></i> Tenho</span>
+  <span><i class="dot d"></i> Repetida</span>
+  <span><i class="dot m"></i> Falta</span>
+</div>
+<div class="hint">Toque numa figurinha: 1× = tenho · 2× = repetida (+1 a cada toque) · segure/clique direito = zerar</div>
+
+<div class="controls">
+  <div class="seg" id="filter">
+    <button class="active" data-f="all">Todas</button>
+    <button data-f="miss">Faltam</button>
+    <button data-f="dup">Repetidas</button>
+  </div>
+  <input class="search" id="search" placeholder="Buscar seleção...">
+</div>
+
+<div class="teams" id="teams"></div>
+
+<div class="trades">
+  <h3>Para <b>trocar</b> — minhas repetidas</h3>
+  <div class="chips" id="dup-list"><span class="empty">Nenhuma repetida ainda.</span></div>
+  <h3 style="margin-top:16px">Minha <b style="color:var(--red)">lista de procura</b> — faltam</h3>
+  <div class="chips" id="miss-list"><span class="empty">Marque suas figurinhas para gerar a lista.</span></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn" id="export">Exportar lista (texto)</button>
+  <button class="btn danger" id="reset">Zerar tudo</button>
+</div>
+
+<script>
+// ---- Estrutura do álbum: 48 seleções (1 a 20 cada) + especiais FWC ----
+const TEAMS = [
+  // Grupo A
+  {f:"🇲🇽",n:"México",g:"A"},{f:"🇨🇦",n:"Canadá",g:"B"},{f:"🇺🇸",n:"Estados Unidos",g:"D"},
+  {f:"🇦🇷",n:"Argentina",g:"—"},{f:"🇧🇷",n:"Brasil",g:"—"},{f:"🇫🇷",n:"França",g:"—"},
+  {f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",n:"Inglaterra",g:"—"},{f:"🇪🇸",n:"Espanha",g:"—"},{f:"🇵🇹",n:"Portugal",g:"—"},
+  {f:"🇩🇪",n:"Alemanha",g:"—"},{f:"🇳🇱",n:"Holanda",g:"—"},{f:"🇧🇪",n:"Bélgica",g:"—"},
+  {f:"🇮🇹",n:"Itália",g:"—"},{f:"🇭🇷",n:"Croácia",g:"—"},{f:"🇺🇾",n:"Uruguai",g:"—"},
+  {f:"🇨🇴",n:"Colômbia",g:"—"},{f:"🇯🇵",n:"Japão",g:"—"},{f:"🇰🇷",n:"Coreia do Sul",g:"—"},
+  {f:"🇲🇦",n:"Marrocos",g:"—"},{f:"🇸🇳",n:"Senegal",g:"—"},{f:"🇨🇮",n:"Costa do Marfim",g:"—"},
+  {f:"🇬🇭",n:"Gana",g:"—"},{f:"🇳🇬",n:"Nigéria",g:"—"},{f:"🇩🇿",n:"Argélia",g:"—"},
+  {f:"🇪🇬",n:"Egito",g:"—"},{f:"🇨🇲",n:"Camarões",g:"—"},{f:"🇦🇺",n:"Austrália",g:"—"},
+  {f:"🇮🇷",n:"Irã",g:"—"},{f:"🇸🇦",n:"Arábia Saudita",g:"—"},{f:"🇶🇦",n:"Catar",g:"—"},
+  {f:"🇯🇴",n:"Jordânia",g:"—"},{f:"🇺🇿",n:"Uzbequistão",g:"—"},{f:"🇪🇨",n:"Equador",g:"—"},
+  {f:"🇵🇾",n:"Paraguai",g:"—"},{f:"🇵🇪",n:"Peru",g:"—"},{f:"🇨🇱",n:"Chile",g:"—"},
+  {f:"🇨🇭",n:"Suíça",g:"—"},{f:"🇦🇹",n:"Áustria",g:"—"},{f:"🇩🇰",n:"Dinamarca",g:"—"},
+  {f:"🇷🇸",n:"Sérvia",g:"—"},{f:"🇵🇱",n:"Polônia",g:"—"},{f:"🇹🇷",n:"Turquia",g:"—"},
+  {f:"🇳🇴",n:"Noruega",g:"—"},{f:"🇸🇪",n:"Suécia",g:"—"},{f:"🇸🇰",n:"Eslováquia",g:"—"},
+  {f:"🇳🇿",n:"Nova Zelândia",g:"—"},{f:"🇵🇦",n:"Panamá",g:"—"},{f:"🇨🇷",n:"Costa Rica",g:"—"}
+];
+const PER_TEAM = 20;       // cromos por seleção (escudo + 19 jogadores)
+const SPECIALS = 19;       // FWC-1 a FWC-19 (emblema, mascotes, momentos)
+
+// monta a lista de cromos
+function buildCromos(){
+  const list = [];
+  list.push({team:"FWC", flag:"🏆", name:"FIFA World Cup 2026 — Especiais", grp:"★", from:1, to:SPECIALS, prefix:"FWC"});
+  TEAMS.forEach((t,i)=>{
+    list.push({team:t.n, flag:t.f, name:t.n, grp:t.g, from:1, to:PER_TEAM, prefix:null, idx:i});
+  });
+  return list;
+}
+const ALBUM = buildCromos();
+
+// ---- estado ----
+const KEY = "albumCopa2026_v1";
+let state = {};
+try{ state = JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ state = {}; }
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function id(team,num){ return team+"#"+num; }
+function count(team,num){ return state[id(team,num)] || 0; }
+
+let filter = "all";
+let query = "";
+
+// ---- render ----
+const teamsEl = document.getElementById("teams");
+function render(){
+  teamsEl.innerHTML = "";
+  let total=0, have=0, dup=0;
+
+  ALBUM.forEach(block=>{
+    // estatísticas globais
+    for(let num=block.from; num<=block.to; num++){
+      total++;
+      const c = count(block.team,num);
+      if(c>=1) have++;
+      if(c>=2) dup += (c-1);
+    }
+
+    // filtro de busca
+    if(query && !block.name.toLowerCase().includes(query)) return;
+
+    // cromos visíveis conforme filtro
+    let cells = "";
+    let teamHave=0, teamTotal=0;
+    for(let num=block.from; num<=block.to; num++){
+      teamTotal++;
+      const c = count(block.team,num);
+      if(c>=1) teamHave++;
+      const isMiss = c===0, isDup = c>=2;
+      if(filter==="miss" && !isMiss) continue;
+      if(filter==="dup" && !isDup) continue;
+      const label = block.prefix ? block.prefix+"-"+num : num;
+      let cls="cell"; if(c>=2)cls+=" dup"; else if(c===1)cls+=" have";
+      const badge = c>=2 ? `<span class="badge">${c}</span>` : "";
+      cells += `<div class="${cls}" data-team="${block.team}" data-num="${num}">${badge}${label}${block.prefix?'':'<small>'+block.flag+'</small>'}</div>`;
+    }
+
+    if((filter!=="all") && cells==="") return; // nada a mostrar nesse filtro
+
+    const prog = Math.round(teamHave/teamTotal*100);
+    const open = (query || filter!=="all") ? "open" : (state.__open && state.__open[block.team] ? "open":"");
+    const div = document.createElement("div");
+    div.className = "team "+open;
+    div.dataset.team = block.team;
+    div.innerHTML = `
+      <div class="team-head">
+        <span class="flag">${block.flag}</span>
+        <span class="team-name">${block.name}</span>
+        ${block.grp!=="—"?`<span class="team-grp">Grp ${block.grp}</span>`:""}
+        <span class="team-prog">${teamHave}/${teamTotal}</span>
+        <span class="chev">▾</span>
+      </div>
+      <div class="grid">${cells}</div>`;
+    teamsEl.appendChild(div);
+  });
+
+  // header stats
+  const miss = total-have;
+  document.getElementById("s-total").textContent = total;
+  document.getElementById("s-have").textContent = have;
+  document.getElementById("s-miss").textContent = miss;
+  document.getElementById("s-dup").textContent = dup;
+  const pct = total? Math.round(have/total*100):0;
+  document.getElementById("bar").style.width = pct+"%";
+  document.getElementById("pct").textContent = pct+"% completo";
+  document.getElementById("frac").textContent = have+" / "+total;
+
+  renderTrades();
+}
+
+function renderTrades(){
+  const dupList = document.getElementById("dup-list");
+  const missList = document.getElementById("miss-list");
+  let dups=[], miss=[];
+  ALBUM.forEach(block=>{
+    for(let num=block.from; num<=block.to; num++){
+      const label = block.prefix? block.prefix+"-"+num : block.flag+" "+block.name+" "+num;
+      const c = count(block.team,num);
+      if(c>=2) dups.push({label, extra:c-1});
+      if(c===0) miss.push(label);
+    }
+  });
+  dupList.innerHTML = dups.length
+    ? dups.map(d=>`<span class="chip gold">${d.label}${d.extra>1?" ×"+d.extra:""}</span>`).join("")
+    : `<span class="empty">Nenhuma repetida ainda.</span>`;
+  missList.innerHTML = miss.length
+    ? miss.slice(0,400).map(m=>`<span class="chip red">${m}</span>`).join("") + (miss.length>400?`<span class="chip">+${miss.length-400} mais…</span>`:"")
+    : `<span class="empty">Coleção completa! 🎉</span>`;
+}
+
+// ---- interações ----
+teamsEl.addEventListener("click", e=>{
+  const head = e.target.closest(".team-head");
+  if(head){
+    const team = head.parentElement;
+    team.classList.toggle("open");
+    state.__open = state.__open || {};
+    state.__open[team.dataset.team] = team.classList.contains("open");
+    save();
+    return;
+  }
+  const cell = e.target.closest(".cell");
+  if(cell){
+    const k = id(cell.dataset.team, cell.dataset.num);
+    state[k] = (state[k]||0)+1;
+    save(); render();
+  }
+});
+// clique direito / segurar = zerar
+teamsEl.addEventListener("contextmenu", e=>{
+  const cell = e.target.closest(".cell");
+  if(cell){
+    e.preventDefault();
+    const k = id(cell.dataset.team, cell.dataset.num);
+    delete state[k];
+    save(); render();
+  }
+});
+let pressTimer=null;
+teamsEl.addEventListener("touchstart", e=>{
+  const cell = e.target.closest(".cell");
+  if(!cell) return;
+  pressTimer = setTimeout(()=>{
+    const k = id(cell.dataset.team, cell.dataset.num);
+    delete state[k]; save(); render();
+    pressTimer="done";
+  },500);
+},{passive:true});
+teamsEl.addEventListener("touchend", e=>{
+  if(pressTimer==="done"){ e.preventDefault(); }
+  clearTimeout(pressTimer); pressTimer=null;
+});
+
+// filtros
+document.getElementById("filter").addEventListener("click", e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  filter = b.dataset.f;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle("active", x===b));
+  render();
+});
+document.getElementById("search").addEventListener("input", e=>{
+  query = e.target.value.trim().toLowerCase(); render();
+});
+
+// export
+document.getElementById("export").addEventListener("click", ()=>{
+  let dups=[], miss=[];
+  ALBUM.forEach(block=>{
+    for(let num=block.from; num<=block.to; num++){
+      const label = block.prefix? block.prefix+"-"+num : block.name+" "+num;
+      const c = count(block.team,num);
+      if(c>=2) dups.push(label+(c-1>1?" (x"+(c-1)+")":""));
+      if(c===0) miss.push(label);
+    }
+  });
+  const txt =
+`ÁLBUM COPA 2026 — minha situação
+================================
+REPETIDAS (tenho p/ trocar): ${dups.length}
+${dups.join(", ") || "nenhuma"}
+
+FALTAM (procuro): ${miss.length}
+${miss.join(", ") || "nenhuma — completo!"}`;
+  navigator.clipboard?.writeText(txt).then(
+    ()=>alert("Lista copiada para a área de transferência!"),
+    ()=>{ prompt("Copie sua lista:", txt); }
+  );
+});
+
+// reset
+document.getElementById("reset").addEventListener("click", ()=>{
+  if(confirm("Apagar toda a sua coleção registrada?")){
+    state={}; save(); render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
