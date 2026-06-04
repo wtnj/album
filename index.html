@@ -111,7 +111,10 @@
 </div>
 <div class="toolbar">
   <button class="btn" id="export">Exportar lista (texto)</button>
+  <button class="btn" id="backup">💾 Salvar backup (.json)</button>
+  <button class="btn" id="importBtn">📂 Restaurar backup</button>
   <button class="btn danger" id="reset">Zerar tudo</button>
+  <input type="file" id="importFile" accept=".json,application/json" style="display:none">
 </div>
 <script>
 // ===== ESTRUTURA OFICIAL — 12 grupos do sorteio FIFA + vencedores da repescagem mar/2026 =====
@@ -213,6 +216,38 @@ document.getElementById("export").addEventListener("click",()=>{
   navigator.clipboard?.writeText(txt).then(()=>alert("Lista copiada para a área de transferência!"),()=>prompt("Copie sua lista:",txt));
 });
 document.getElementById("reset").addEventListener("click",()=>{if(confirm("Apagar toda a sua coleção registrada?")){state={};save();render();}});
+
+// ===== BACKUP / RESTAURAÇÃO (independente do navegador) =====
+document.getElementById("backup").addEventListener("click",()=>{
+  const data={app:"albumCopa2026",version:2,date:new Date().toISOString(),state:state};
+  const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const d=new Date(), pad=x=>String(x).padStart(2,"0");
+  a.href=url;
+  a.download="album-copa2026-backup-"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+".json";
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},100);
+});
+document.getElementById("importBtn").addEventListener("click",()=>document.getElementById("importFile").click());
+document.getElementById("importFile").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const obj=JSON.parse(ev.target.result);
+      const incoming=obj.state||obj;
+      if(typeof incoming!=="object") throw new Error("formato inválido");
+      if(!confirm("Restaurar este backup? Sua coleção atual será substituída.")) return;
+      state=incoming; save(); render();
+      alert("Backup restaurado com sucesso!");
+    }catch(err){
+      alert("Arquivo inválido. Selecione um backup .json gerado por este app.");
+    }
+    e.target.value="";
+  };
+  reader.readAsText(file);
+});
 render();
 </script>
 </body>
