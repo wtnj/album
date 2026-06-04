@@ -132,10 +132,11 @@ const GROUPS = [
   {g:"K",teams:[{f:"🇵🇹",n:"Portugal"},{f:"🇺🇿",n:"Uzbequistão"},{f:"🇨🇴",n:"Colômbia"},{f:"🇨🇩",n:"RD Congo"}]},
   {g:"L",teams:[{f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",n:"Inglaterra"},{f:"🇭🇷",n:"Croácia"},{f:"🇬🇭",n:"Gana"},{f:"🇵🇦",n:"Panamá"}]}
 ];
-const PER_TEAM=20, SPECIALS=20;
+const PER_TEAM=20, SPECIALS=20, COKE=14;
 function buildAlbum(){
   const list=[{team:"FWC",flag:"🏆",name:"FIFA World Cup 2026 — Especiais",grp:"★",from:1,to:SPECIALS,prefix:"FWC"}];
   GROUPS.forEach(G=>G.teams.forEach(t=>list.push({team:t.n,flag:t.f,name:t.n,grp:G.g,from:1,to:PER_TEAM,prefix:null})));
+  list.push({team:"CC",flag:"🥤",name:"Coca-Cola — Extras",grp:"CC",from:1,to:COKE,prefix:"CC",bonus:true});
   return list;
 }
 const ALBUM=buildAlbum();
@@ -148,8 +149,8 @@ let filter="all",query="";
 const contentEl=document.getElementById("content");
 function render(){
   contentEl.innerHTML="";
-  let total=0,have=0,dup=0;
-  ALBUM.forEach(b=>{for(let n=b.from;n<=b.to;n++){total++;const c=count(b.team,n);if(c>=1)have++;if(c>=2)dup+=c-1;}});
+  let total=0,have=0,dup=0,ccHave=0;
+  ALBUM.forEach(b=>{for(let n=b.from;n<=b.to;n++){const c=count(b.team,n);if(b.bonus){if(c>=1)ccHave++;if(c>=2)dup+=c-1;continue;}total++;if(c>=1)have++;if(c>=2)dup+=c-1;}});
   function teamCard(block){
     if(query && !block.name.toLowerCase().includes(query)) return null;
     let cells="",th=0,tt=0;
@@ -167,7 +168,7 @@ function render(){
     const open=(query||filter!=="all")?"open":(state.__open&&state.__open[block.team]?"open":"");
     const div=document.createElement("div");div.className="team "+open;div.dataset.team=block.team;
     div.innerHTML='<div class="team-head"><span class="flag">'+block.flag+'</span><span class="team-name">'+block.name+'</span>'+
-      (block.grp!=="★"?'<span class="team-grp">Grupo '+block.grp+'</span>':'<span class="team-grp" style="color:var(--gold)">Especiais</span>')+
+      (block.grp==="★"?'<span class="team-grp" style="color:var(--gold)">Especiais</span>':block.grp==="CC"?'<span class="team-grp" style="color:var(--gold)">Extras</span>':'<span class="team-grp">Grupo '+block.grp+'</span>')+
       '<span class="team-prog">'+th+'/'+tt+'</span><span class="chev">▾</span></div><div class="grid">'+cells+'</div>';
     return div;
   }
@@ -179,6 +180,8 @@ function render(){
     const title=document.createElement("div");title.className="grp-title";title.textContent="Grupo "+G.g;contentEl.appendChild(title);
     const w=document.createElement("div");w.className="teams";cards.forEach(c=>w.appendChild(c));contentEl.appendChild(w);
   });
+  const cc=teamCard(ALBUM.find(b=>b.team==="CC"));
+  if(cc){const t=document.createElement("div");t.className="grp-title";t.style.color="#fff";t.textContent="🥤 Coca-Cola — Extras (CC1 a CC14)";contentEl.appendChild(t);const w=document.createElement("div");w.className="teams";w.appendChild(cc);contentEl.appendChild(w);}
   const miss=total-have;
   document.getElementById("s-total").textContent=total;
   document.getElementById("s-have").textContent=have;
@@ -187,7 +190,7 @@ function render(){
   const pct=total?Math.round(have/total*100):0;
   document.getElementById("bar").style.width=pct+"%";
   document.getElementById("pct").textContent=pct+"% completo";
-  document.getElementById("frac").textContent=have+" / "+total;
+  document.getElementById("frac").textContent=have+" / "+total+"  ·  Coca-Cola "+ccHave+"/14";
   renderTrades();
 }
 function renderTrades(){
