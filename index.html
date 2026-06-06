@@ -93,7 +93,7 @@
   <span><i class="dot d"></i> Repetida</span>
   <span><i class="dot m"></i> Falta</span>
 </div>
-<div class="hint">Toque numa figurinha: 1× = tenho · 2× = repetida (+1 a cada toque) · segure/clique direito = zerar</div>
+<div class="hint">Toque numa figurinha: 1× = tenho (não conta repetida) · 2× = tenho + 1 repetida · cada toque a mais soma uma repetida · segure/clique direito = zerar</div>
 <div class="controls">
   <div class="seg" id="filter">
     <button class="active" data-f="all">Todas</button>
@@ -161,7 +161,7 @@ function render(){
       if(filter==="dup"&&!isDup)continue;
       const label=block.prefix?block.prefix+"-"+n:n;
       let cls="cell";if(c>=2)cls+=" dup";else if(c===1)cls+=" have";
-      const badge=c>=2?'<span class="badge">'+c+'</span>':"";
+      const badge=c>=2?'<span class="badge">'+(c-1)+'</span>':"";
       cells+='<div class="'+cls+'" data-team="'+block.team+'" data-num="'+n+'">'+badge+label+(block.prefix?'':'<small>'+block.flag+'</small>')+'</div>';
     }
     if(filter!=="all"&&cells==="")return null;
